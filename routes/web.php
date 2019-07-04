@@ -11,6 +11,7 @@
 |
 */
 
-$router->get('/', function () use ($router) {
-    return $router->app->version();
-});
+
+$router->post('/login','AuthController@authenticate');
+$router->post('/register','AuthController@register');
+

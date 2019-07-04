@@ -17,7 +17,7 @@ class SetupUser extends Migration
             $table->increments('id');
             $table->string('name');
             $table->string('email');
-            $table->string('auth_key');
+            $table->string('auth_key')->nullable();
             $table->string('password');
             $table->timestamps();
         });

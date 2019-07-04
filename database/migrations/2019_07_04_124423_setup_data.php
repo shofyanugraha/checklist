@@ -15,7 +15,7 @@ class SetupData extends Migration
     {
         Schema::create('templates', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('user_id')->index();
+            $table->unsignedInteger('user_id')->index()->nullable();
             $table->string('name');
             $table->json('checklist');
             $table->json('items');
@@ -25,7 +25,7 @@ class SetupData extends Migration
 
         Schema::create('checklists', function (Blueprint $table) {
             $table->increments('id');
-            $table->unsignedInteger('user_id')->index();
+            $table->unsignedInteger('user_id')->index()->nullable();
             $table->string('object_domain');
             $table->string('object_id');
             $table->string('description');
