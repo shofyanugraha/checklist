@@ -16,7 +16,7 @@ class AuthController extends Controller
    */
   public function __construct()
   {
-      $this->middleware('auth:api');
+      // $this->middleware('auth:api');
   }
 
   //
@@ -53,7 +53,7 @@ class AuthController extends Controller
         'password' => 'required'
     ]);
 
-    // try {
+    try {
       $user = new User;
       $user->name = $request->name;
       $user->email = $request->email;
@@ -65,6 +65,8 @@ class AuthController extends Controller
       } else {
         return Json::exception('Failed to Register');
       }
-    
+    } catch (\Exception $e) {
+        return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 401);
+    }
   }
 }

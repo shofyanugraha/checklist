@@ -15,3 +15,11 @@
 $router->post('/login','AuthController@authenticate');
 $router->post('/register','AuthController@register');
 
+$router->group(['prefix'=>'/template'], function($router){
+	$router->get('/','TemplateController@index');
+	$router->post('/','TemplateController@store');
+	$router->get('/{id}','TemplateController@show');
+	$router->patch('/{id}','TemplateController@update');
+	$router->delete('/{id}','TemplateController@delete');
+});
+

@@ -1,6 +1,6 @@
 <?php
 namespace App\Transformers;
-
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 /**
 *  Class Json is transformers from raw data to json view
@@ -18,16 +18,19 @@ class Json
         $result = [];
     	
         if ($data instanceof \Illuminate\Pagination\LengthAwarePaginator) {
-            $result['meta']['count'] = $data->offset();
-            $result['meta']['total'] = $data->total();
-            $result['links']['first']=$data->firstPage();
-            $result['links']['last']=$data->lastPage();
-            $result['links']['next']=$data->nextPageUrl();
-            $result['links']['prev']=$data->previousPageUrl();
-    		$result['data'] = $data->all();
-            $result['data']['links']['self'] = $data->currentpage();;
+            $dt = $data->toArray();
+            // dd($dt);
+            $result['meta']['count'] = $dt['to'];
+            $result['meta']['total'] = $dt['total'];
+            $result['links']['first']=$dt['first_page_url'];
+            $result['links']['last']=$dt['last_page_url'];
+            $result['links']['next']=$dt['next_page_url'];
+            $result['links']['prev']=$dt['prev_page_url'];
+    		$result['data'] = $dt['data'];
+            $result['data']['links']['self'] = app('url')->full() ;
     	} else {
     		$result['data'] = $data;
+            $result['data']['links'] = ['self'=>app('url')->full()] ;
     	}
 
         if ($additional!=null) {
@@ -47,14 +50,20 @@ class Json
 
 	    $result['message'] = $message;
 	    $result['status'] = false;
-        if ($error instanceof \ErrorException) {    
+        // dd();
+        if ($error instanceof NotFoundHttpException) {    
+            $result['error']['message'] = $error->getMessage();
+            $result['error']['file'] = $error->getFile();
+            $result['error']['line'] = $error->getLine();
+        } elseif ($error instanceof \Exception) {    
+
             $result['error']['message'] = $error->getMessage();
             $result['error']['file'] = $error->getFile();
             $result['error']['line'] = $error->getLine();
         } elseif(is_array($error) && count($error) > 0) {
     	   $result['error'] = $error; 
         }
-	    return response()->json($result, 200);
+	    return response()->json($result, $code);
     }
     
 }

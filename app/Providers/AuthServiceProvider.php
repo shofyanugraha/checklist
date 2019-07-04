@@ -2,7 +2,7 @@
 
 namespace App\Providers;
 
-use App\User;
+use App\Models\User;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\ServiceProvider;
 
@@ -34,8 +34,9 @@ class AuthServiceProvider extends ServiceProvider
             if ($request->header('Authorization')) {
                 try{
                     $key = explode(' ',$request->header('Authorization'));
-                    $user = User::where('auth_key', $key[1])->first();
+                    $user = User::where('auth_key', $key[1])->firstOrFail();
                     $request->request->add(['userid' => $user->id]);
+                    // dd($request);
 
                     return $user;
                 } catch (\Exception $e){
