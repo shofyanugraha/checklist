@@ -31,6 +31,6 @@ class User extends Model implements AuthenticatableContract, AuthorizableContrac
     ];
 
     public function templates(){
-        return $this->hasMany('App\Models', 'user_id');
+        return $this->hasMany('App\Models\User', 'user_id');
     }
 }

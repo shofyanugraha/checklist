@@ -50,7 +50,7 @@ class Handler extends ExceptionHandler
     public function render($request, Exception $exception)
     {
         if($exception instanceof NotFoundHttpException){
-            return Json::exception('Page Not', env('APP_ENV', 'local') == 'local' ? $exception : null);
+            return Json::exception('Page Not', env('APP_ENV', 'local') == 'local' ? $exception : null, 404);
         }
         return parent::render($request, $exception);
     }

@@ -1,17 +1,16 @@
 <?php
 namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
-class Item extends Model
+class Task extends Model
 {
-	protected $casts = [
+    protected $casts = [
         'is_completed' => 'boolean',
         'created_at' => 'datetime:c',
         'updated_at' => 'datetime:c',
         'completed_at' => 'datetime:c'
     ];
 
-    //relation to task
-    public function task(){
-    	return $this->belongsTo('App\Models\Task', 'task_id');
+    public function items(){
+    	return $this->hasMany('App\Models\Item', 'task_id');
     }
 }

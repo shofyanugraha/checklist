@@ -8,12 +8,18 @@ use Illuminate\Http\Request;
 
 // model
 use App\Models\Template;
+use App\Models\ObjectData;
+use App\Models\Task;
+use App\Models\Item;
 
 // filter
 use App\Rules\Filter;
 
 // trasnformer
 use App\Transformers\Json;
+
+// use package
+use Carbon\Carbon;
 
 
 class TemplateController extends Controller
@@ -187,4 +193,83 @@ class TemplateController extends Controller
       return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 401);
     }
   }
+
+  public function assign(Request $request, $id){
+    $this->validate($request, [
+      'data'=>'required',
+      'data.*'=>'required',
+      'data.*.attributes.object_id'=>'required',
+      'data.*.attributes.object_domain'=>'required',
+    ]);
+
+    $template = Template::findOrFail($id);
+
+    $return = [];
+    $included = collect([]);
+
+    foreach($request->data as $data){
+      try {
+        $task = new Task;
+
+        $task->user_id = $request->userid;
+        $task->object_domain = $data['attributes']['object_domain'];
+        $task->object_id = $data['attributes']['object_id'];
+        $task->description = $template->checklist['description'];
+        $task->due = Carbon::now()->add($template->checklist['due_interval'], $template->checklist['due_unit']);
+        $task->is_completed = 0;
+        
+        $task->type = 'checklist';
+        if($task->save()){
+          $itemHolder = []; 
+
+          foreach ($template->items as $item){
+            $dataItem = new Item;
+            $dataItem->user_id = $request->userid;
+            $dataItem->assignee_id = $request->userid;
+            $dataItem->urgency = $item['urgency'];
+            $dataItem->description = $item['description'];
+            $dataItem->due = Carbon::now()->add($item['due_interval'], $item['due_unit']);
+            $dataItem->is_completed = false;
+            $itemHolder[] = $dataItem;
+          }
+          try{
+            $task->items()->saveMany($itemHolder); 
+          } catch (\Exception $e){
+            return Json::exception('Error', env('APP_ENV', 'local') == 'local' ? $e : null, 401);
+          }
+
+          $relation = [];
+          $relation['items']['data'] =[];
+          $relation['items']['links'] = [
+            'self'=> url('/checklists/'. $task->id.'/relationships/items'),
+            'related'=> url('/checklists/'. $task->id.'/items'),
+          ];
+
+          $task->links = [
+            'self'=> url('/checklists/'. $task->id),
+          ];
+
+          $included = $included->merge($task->items);
+          foreach($task->items as $i){
+            $relation['items']['data'][] = [
+              'type' => 'items',
+              'id' => $i->id
+            ];
+          }
+          unset($task->items);
+
+
+
+          $task->relationship = $relation;
+          $return[] = $task;
+        }
+      } catch (\Illuminate\Database\QueryException $e){
+        return Json::exception('Error', env('APP_ENV', 'local') == 'local' ? $e : null, 500);
+      } catch (\Exception $e){
+        return Json::exception('Error', env('APP_ENV', 'local') == 'local' ? $e : null, 401);
+      }
+    }
+    return Json::response($return, null, 200, $included);
+  }
+
 }

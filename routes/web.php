@@ -21,5 +21,6 @@ $router->group(['prefix'=>'/template'], function($router){
 	$router->get('/{id}','TemplateController@show');
 	$router->patch('/{id}','TemplateController@update');
 	$router->delete('/{id}','TemplateController@delete');
+	$router->post('/{id}/assigns','TemplateController@assign');
 });
 

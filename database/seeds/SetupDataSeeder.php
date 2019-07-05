@@ -2,6 +2,8 @@
 
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use App\Models\User;
+use App\Models\ObjectData;
 
 class SetupDataSeeder extends Seeder
 {
@@ -12,17 +14,16 @@ class SetupDataSeeder extends Seeder
      */
     public function run()
     {
-        DB::table('users')->insert([
-            'name' => 'User 1',
-            'email' => 'user@example.com',
-            'password' => Hash::make('password'),
-        ]);
-		
-		DB::table('objects')->insert([
-            'domain_name' => 'User 1',
-            'user_id' => 'User 1',
-            'email' => 'user@example.com',
-            'password' => Hash::make('password'),
-        ]);
+    	$user = new User;
+    	$user->name = 'User 1';
+    	$user->email = 'user@example.com' ;
+    	$user->password = Hash::make('password');
+    	$user->save();
+
+    	$object = new ObjectData;
+    	$object->user_id = $user->id;
+    	$object->name = 'Object 1';
+    	$object->object_domain = 'deals';
+    	$object->save();
     }
 }

@@ -30,13 +30,16 @@ class Json
             $result['data']['links']['self'] = app('url')->full() ;
     	} else {
     		$result['data'] = $data;
-            $result['data']['links'] = ['self'=>app('url')->full()] ;
+            if(is_array($data) && count($data) > 1){
+                $result['meta']['count'] = count($data);
+                $result['meta']['total'] = count($data);
+            } else {
+                $result['data']['links'] = ['self'=>app('url')->full()] ;
+            }
     	}
 
         if ($additional!=null) {
-            foreach ($additional as $add) {
-                $result['meta'][$add['name']] = $add['data'];
-            }
+            $result['included'] = $additional;
         }
 
 	    return response()->json($result, $code);
