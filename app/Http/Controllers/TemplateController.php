@@ -96,19 +96,30 @@ class TemplateController extends Controller
       if($request->has('filter')) {
         foreach ($request->filter as $key => $filter) {
           foreach ($filter as $k => $value) {
-            $value = explode(',',$value);
             if($k == 'is') {
               $templates->where($key,$value);
             } elseif ($k == '!is') {
               $templates->where($key,'!=',$value);
             } elseif ($k == 'in') {
+              $value = explode(',',$value);
               $templates->whereIn($key,$value);
             } elseif ($k == '!in') {
+              $value = explode(',',$value);
               $templates->whereNotIn($key,$value);
             } elseif ($k == 'like') {
-              $templates->whereLike($key,preg_replace('/[*]/', '%', $value));
+              $tempValue = $value;
+              if(preg_match('/[*]/', '%', $value)){
+                $templates->where($key, 'like', preg_replace('/[*]/', '%', $value));
+              } else {                
+                $templates->where($key, 'like', '%'. $tempValue.'%');
+              }
             } elseif ($k == '!like') {
-              $templates->whereNotLike($key, preg_replace('/[*]/', '%', $value));
+              $tempValue = $value;
+              if(preg_match('/[*]/', '%', $value)){
+                $templates->where($key, 'not like', preg_replace('/[*]/', '%', $value));
+              } else {
+                $templates->where($key, 'not like', '%'. $tempValue.'%');
+              }
             }
           }
         }
@@ -139,6 +150,8 @@ class TemplateController extends Controller
       return Json::response($templates);
     } catch (\Illuminate\Database\QueryException $e){
       return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e){
+      return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 404);
     } catch (\Exception $e){
       return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 401);
     }
