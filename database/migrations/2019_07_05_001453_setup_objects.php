@@ -23,7 +23,7 @@ class SetupObjects extends Migration
         });
 
         Schema::table('checklists', function($table){
-            $table->unsignedInteger('object_id')->change();
+            $table->unsignedInteger('object_id')->nullable()->change();
             $table->foreign('object_id')->references('id')->on('objects');
         });
     }
@@ -35,10 +35,12 @@ class SetupObjects extends Migration
      */
     public function down()
     {
-        Schema::table('checklist', function($table){
-            $table->dropForeign(['object_id']);
-            $table->string('object_id')->change();
+        Schema::table('checklists', function($table){
+            $table->dropForeign('checklists_object_id_foreign');
             
+        });
+        Schema::table('checklists', function($table){
+            $table->string('object_id')->change();
         });
 
         Schema::table('objects', function($table){

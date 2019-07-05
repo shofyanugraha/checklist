@@ -89,5 +89,6 @@ class SetupData extends Migration
         Schema::drop('items');
         Schema::drop('checklists');
         Schema::drop('templates');
+        Schema::drop('histories');
     }
 }
