@@ -75,6 +75,8 @@ class TaskController extends Controller
           }
           try{
             $task->items()->saveMany($itemHolder); 
+          } catch (\Illuminate\Database\QueryException $e){
+            return Json::exception('Server Error', env('APP_ENV', 'local') == 'local' ? $e : null, 500);
           } catch (\Exception $e){
             return Json::exception('Error', env('APP_ENV', 'local') == 'local' ? $e : null, 401);
           }
@@ -82,8 +84,10 @@ class TaskController extends Controller
         $response = (new TaskTransformer)->single($task);
         return Json::response($response);
       } else {
-        return Json::exception('Failed to create template');
+        return Json::exception('Failed to create task');
       }
+    } catch (\Illuminate\Database\QueryException $e){ 
+            return Json::exception('Server Error', env('APP_ENV', 'local') == 'local' ? $e : null, 500);
     } catch (\Exception $e) {
         return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 401);
     }
@@ -170,27 +174,27 @@ class TaskController extends Controller
   public function update(Request $request, $id){
     $this->validate($request, [
       'data'=>'required',
-      
-      'data.name'=>'required|string',
-      'data.items'=>'required|array',
-      'data.items.*.description'=>'required|string',
-      'data.items.*.urgency'=>'required|numeric',
-      'data.items.*.due_interval'=>'required|numeric',
-      'data.items.*.due_unit'=>'required|string',
+      'data.attributes'=>'required',
+      'data.attributes.object_domain'=>'required|string',
+      'data.attributes.object_id'=>'required|numeric',
+      'data.attributes.description'=>'string',
+      'data.attributes.is_completed'=>'required|boolean',
+      'data.attributes.completed_at'=>'string',
     ]);
 
-    // trying save template to db
+    // trying update task to db
     try {
-      $template = Template::findOrFail($id);
-      $template->user_id = $request->userid;
-      $template->name = $request->data['name'];
-      $template->checklist = $request->data['checklist'];
-      $template->items = $request->data['items'];
+      $task = Task::findOrFail($id);
+      $task->updated_by = $request->userid;
 
-      if($template->save()){
-        return Json::response($template);
+    
+
+      if($task->save()){
+        $task = (new TaskTransformer)->single($task);
+      
+        return Json::response($task);
       } else {
-        return Json::exception('Failed to create template');
+        return Json::exception('Failed to update task');
       }
     } catch (\Exception $e) {
         return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 401);
@@ -215,84 +219,6 @@ class TaskController extends Controller
     } catch (\Exception $e){
       return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 401);
     }
-  }
-
-  public function assign(Request $request, $id){
-    $this->validate($request, [
-      'data'=>'required',
-      'data.*'=>'required',
-      'data.*.attributes.object_id'=>'required',
-      'data.*.attributes.object_domain'=>'required',
-    ]);
-
-    $template = Template::findOrFail($id);
-
-    $return = [];
-    $included = collect([]);
-
-    foreach($request->data as $data){
-      try {
-        $task = new Task;
-
-        $task->user_id = $request->userid;
-        $task->object_domain = $data['attributes']['object_domain'];
-        $task->object_id = $data['attributes']['object_id'];
-        $task->description = $template->checklist['description'];
-        $task->due = Carbon::now()->add($template->checklist['due_interval'], $template->checklist['due_unit']);
-        $task->is_completed = 0;
-        
-        $task->type = 'checklist';
-        if($task->save()){
-          $itemHolder = []; 
-
-          foreach ($template->items as $item){
-            $dataItem = new Item;
-            $dataItem->user_id = $request->userid;
-            $dataItem->assignee_id = $request->userid;
-            $dataItem->urgency = $item['urgency'];
-            $dataItem->description = $item['description'];
-            $dataItem->due = Carbon::now()->add($item['due_interval'], $item['due_unit']);
-            $dataItem->is_completed = false;
-            $itemHolder[] = $dataItem;
-          }
-          try{
-            $task->items()->saveMany($itemHolder); 
-          } catch (\Exception $e){
-            return Json::exception('Error', env('APP_ENV', 'local') == 'local' ? $e : null, 401);
-          }
-
-          $relation = [];
-          $relation['items']['data'] =[];
-          $relation['items']['links'] = [
-            'self'=> url('/checklists/'. $task->id.'/relationships/items'),
-            'related'=> url('/checklists/'. $task->id.'/items'),
-          ];
-
-          $task->links = [
-            'self'=> url('/checklists/'. $task->id),
-          ];
-
-          $included = $included->merge($task->items);
-          foreach($task->items as $i){
-            $relation['items']['data'][] = [
-              'type' => 'items',
-              'id' => $i->id
-            ];
-          }
-          unset($task->items);
-
-
-
-          $task->relationship = $relation;
-          $return[] = $task;
-        }
-      } catch (\Illuminate\Database\QueryException $e){
-        return Json::exception('Error', env('APP_ENV', 'local') == 'local' ? $e : null, 500);
-      } catch (\Exception $e){
-        return Json::exception('Error', env('APP_ENV', 'local') == 'local' ? $e : null, 401);
-      }
-    }
-    return Json::response($return, null, 200, $included );
   }
 
 }
