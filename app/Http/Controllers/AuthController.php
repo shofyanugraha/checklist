@@ -22,7 +22,7 @@ class AuthController extends Controller
   //
   public function authenticate(Request $request){
     $this->validate($request, [
-        'email' => 'required|email',
+        'email' => 'required|email|exists:users,email',
         'password' => 'required'
     ]);
 
