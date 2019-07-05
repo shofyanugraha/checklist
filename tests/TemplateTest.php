@@ -268,4 +268,84 @@ class TemplateTest extends TestCase
         );
   }
 
+  /*
+  * 5. Assign
+  */
+
+  // Test Update Template Without Header
+  public function testAssignToObjectSuccess()
+  {
+    $paramsText = '{"data":[{"attributes":{"object_id":1,"object_domain":"deals"}},{"attributes":{"object_id":2,"object_domain":"deals"}},{"attributes":{"object_id":3,"object_domain":"deals"}}]}';
+    $params = json_decode($paramsText, true);
+    $this->post('/template/1/assigns', $params, [
+      'Authorization' => 'Bearer '. User::find(1)->auth_key,
+    ]);
+
+    $this->seeStatusCode(200);
+
+    $this->seeJsonStructure([
+            'data'=>[
+              '*'=>[
+                'user_id',
+                'object_domain',
+                'description',
+                'due',
+                'is_completed',
+                'type',
+                'updated_at',
+                'created_at',
+                'id',
+                'links'=>['self'],
+                'relationship'=>[
+                  'items'=> [
+                    'data'=>[
+                      '*'=>[
+                        'type',
+                        'id'
+                      ],
+                    ],
+                    'links'=>['self', 'related']
+                  ],
+                ]
+              ],  
+            ],
+            'included'=>[
+              '*'=>[
+                'id',
+                'user_id',
+                'description',
+                'is_completed',
+                'completed_at',
+                'due',
+                'urgency',
+                'updated_by',
+                'assignee_id',
+                'task_id',
+                'created_at',
+                'updated_at'
+              ]
+            ]
+          ]   
+        );
+  }
+
+  public function testAssignToObjectValidationFailed()
+  {
+    $paramsText = '{"data":[{"attributes":{"object_id":"a","object_domain":"deals"}},{"attributes":{"object_id":2,"object_domain":"deals"}},{"attributes":{"object_id":3,"object_domain":"deals"}}]}';
+    $params = json_decode($paramsText, true);
+    $this->post('/template/1/assigns', $params, [
+      'Authorization' => 'Bearer '. User::find(1)->auth_key,
+    ]);
+    // dd($paramsText);
+
+     $this->seeStatusCode(500);
+
+    $this->seeJsonStructure(
+            [
+              'message',
+              'status'
+            ]    
+        );
+  }
+
 }
