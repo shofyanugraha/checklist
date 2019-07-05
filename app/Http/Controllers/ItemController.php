@@ -71,7 +71,7 @@ class ItemController extends Controller
             return Json::exception('Cannot bulk update', null, null, 400);
           }  
         } else {
-          return Json::exception('item_id '. $dt['item_id'].' has been completed before', null, 401);  
+          return Json::exception('item_id '. $dt['item_id'].' has been completed before', null, 400);  
         }
       } catch (\Illuminate\Database\QueryException $e){
         return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
@@ -134,12 +134,12 @@ class ItemController extends Controller
             return Json::exception('Cannot bulk update', null, null, 400);
           }  
         } else {
-          return Json::exception('item_id '. $dt['item_id'].' has been incompleted before', null, 401);  
+          return Json::exception('item_id '. $dt['item_id'].' has been incompleted before', null, 400);  
         }
       } catch (\Illuminate\Database\QueryException $e){
         return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
       } catch (\Exception $e){
-        return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 404);
+        return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 400);
       }      
     }
 

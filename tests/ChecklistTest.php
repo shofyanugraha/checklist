@@ -232,7 +232,7 @@ class ChecklistTest extends TestCase
   * 5. Delete
   */
 
-  public function testDeleteTemplateSuccess()
+  public function testChecklistDelete()
   {
     $this->delete('/checklists/5', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,

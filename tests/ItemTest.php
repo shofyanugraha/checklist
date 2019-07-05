@@ -143,14 +143,73 @@ class ItemTest extends TestCase
   * 5. Delete
   */
 
-  public function testDeleteTemplateSuccess()
+  public function testItemDeleteSuccess()
   {
-    $this->delete('/checklists/5', [
+    $this->delete('/checklists/5/items', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
      $this->seeStatusCode(204);
   }
+
+
+  /*
+  * 6. Complete / Incomplete
+  */
+
+
+  public function testItemComplete()
+  {
+    $paramsText = '{"data":[{"item_id":1},{"item_id":2},{"item_id":3},{"item_id":4}]}';
+    $params = json_decode($paramsText, true);
+    
+    $this->post('/checklists/complete', $params, [
+      'Authorization' => 'Bearer '. User::find(1)->auth_key,
+    ]);
+
+     $this->seeStatusCode(200);
+     $this->seeJsonStructure(
+            [
+              'data'=>[
+                '*'=>[
+                  'id',
+                  'item_id',
+                  'is_completed',
+                  'checklist_id',
+                ]
+              ]
+            ]    
+        );
+  }
+
+
+
+  public function testItemInComplete()
+  {
+    $paramsText = '{"data":[{"item_id":1},{"item_id":2},{"item_id":3},{"item_id":4}]}';
+    $params = json_decode($paramsText, true);
+
+    
+    $this->post('/checklists/incomplete', $params, [
+      'Authorization' => 'Bearer '. User::find(1)->auth_key,
+    ]);
+
+     $this->seeStatusCode(200);
+     $this->seeJsonStructure(
+            [
+              'data'=>[
+                '*'=>[
+                  'id',
+                  'item_id',
+                  'is_completed',
+                  'checklist_id',
+                ]
+              ]
+            ]    
+        );
+  }
+
+
 
 
 }
