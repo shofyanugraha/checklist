@@ -207,17 +207,17 @@ class TaskController extends Controller
     ]);
 
     try{
-      $template = Template::findOrFail($id);
+      $task = Task::findOrFail($id);
       
-      if($template->delete()){
-        return Json::response($template);
+      if($task->delete()){
+        return Json::response(null, null, 204);
       } else {
-        return Json::exception('Error',null, 401);
+        return Json::exception('Error',null, 400);
       }
     } catch (\Illuminate\Database\QueryException $e){
       return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
     } catch (\Exception $e){
-      return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 401);
+      return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 404);
     }
   }
 

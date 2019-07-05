@@ -183,7 +183,7 @@ class TemplateController extends Controller
       $template = Template::findOrFail($id);
       
       if($template->delete()){
-        return Json::response($template);
+        return Json::response(null, null, 204);
       } else {
         return Json::exception('Error',null, 401);
       }
