@@ -4,57 +4,42 @@ use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 use App\Models\Template;
 use App\Models\User;
-class TemplateTest extends TestCase
+class ChecklistTest extends TestCase
 {
 
   /*
   * 1. Create
   */
 
-  // Test Template Create
-  public function testTemplateCreateSuccess()
+  // Test Checklist Create
+  public function testChecklistCreateSuccess()
   {
-    $paramsText ='{"data":{"attributes":{"name":"foo template","checklist":{"description":"my checklist","due_interval":3,"due_unit":"hour"},"items":[{"description":"my foo item","urgency":2,"due_interval":40,"due_unit":"minute"},{"description":"my bar item","urgency":3,"due_interval":30,"due_unit":"minute"}]}}}';
+    $paramsText ='{"data":{"attributes":{"object_domain":"contact","object_id":"1","due":"2019-01-25T07:50:14+00:00","urgency":1,"description":"Need to verify this guy house.","items":["Visit his house","Capture a photo","Meet him on the house"]}}}';
     $params = json_decode($paramsText, true);
-    // dd($params);
 
-    $this->post('/template', $params, [
+    $this->post('/checklists', $params, [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
     $this->seeStatusCode(200);
 
     $this->seeJsonStructure([
             'data'=>[
-              'name',
-              'checklist'=>[
-                'description',
-                'due_interval',
-                'due_unit'
-              ],
-              'items'=> [
-                '*' => [
-                  'description',
-                  'urgency',
-                  'due_interval',
-                  'due_unit'
-                ] 
-              ],
-              'updated_at',
-              'created_at',
-              'id'
+              'type',
+              'id',
+              'attributes',
+              'links'
             ]
           ]   
         );
   }
 
-  // Test Template Create Validation Failed
-  public function testTemplateCreateValidationFailed()
+  // Test Checklist Create Validation Failed
+  public function testChecklistCreateValidationFailed()
   {
-    $paramsText ='{"data":{"attributes":{"name":null,"checklist":{"description":"my checklist","due_interval":3,"due_unit":"hour"},"items":null}}}';
+    $paramsText ='{"data":{"attributes":{"object_domain":1,"object_id":"a","due":"2019-01-25T07:50:14+00:00","urgency":1,"description":"Need to verify this guy house.","items":["Visit his house","Capture a photo","Meet him on the house"]}}}';
     $params = json_decode($paramsText, true);
-    // dd($params);
 
-    $this->post('/template', $params, [
+    $this->post('/checklists', $params, [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
     $this->seeStatusCode(400);
@@ -72,11 +57,11 @@ class TemplateTest extends TestCase
   * 2. Listing
   */
 
-  // Test Listing Template
-  public function testTemplateListingSucess()
+  // Test Listing Checklist
+  public function testChecklistListingSucess()
   {
     $params = [];
-    $this->get('/template', [
+    $this->get('/checklists', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
     $this->seeStatusCode(200);
@@ -90,9 +75,9 @@ class TemplateTest extends TestCase
   }
 
   // Test Listing Template Filter Success
-  public function testTemplateListFilterSuccess()
+  public function testChecklistListFilterSuccess()
   {
-    $this->get('/template?sorts=-id&amp;page_limit=2&amp;field=name,checklist,items&amp;filter[name][like]=foo', [
+    $this->get('/checklists?sorts=-object_id&page_limit=2&field=object_id,object_domain&filter[object_domain][like]=de', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -107,9 +92,9 @@ class TemplateTest extends TestCase
   }
 
   // Test Listing Template Filter Failed
-  public function testTemplateListFilterFailed()
+  public function testChecklistListFilterFailed()
   {
-    $this->get('/template?sorts=-id&amp;page_limit=a&amp;field=namee,checklist,items&amp;filter[name][andu]=foo', [
+    $this->get('/checklists?sorts=-object_id&page_limit=a&field=object_id,object_domain&filter[object_domain][like]=de', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -129,10 +114,10 @@ class TemplateTest extends TestCase
   */
 
   // Test Show Template Success
-  public function testTemplateShowSuccess()
+  public function testChecklistShowSuccess()
   {
     $params = [];
-    $this->get('/template/1', [
+    $this->get('/checklist/'.Task::orderBy('id','desc')->first()->id, [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -140,33 +125,20 @@ class TemplateTest extends TestCase
 
     $this->seeJsonStructure([
             'data'=>[
-              'name',
-              'checklist'=>[
-                'description',
-                'due_interval',
-                'due_unit'
-              ],
-              'items'=> [
-                '*' => [
-                  'description',
-                  'urgency',
-                  'due_interval',
-                  'due_unit'
-                ] 
-              ],
-              'updated_at',
-              'created_at',
-              'id'
+              'type',
+              'id',
+              'attributes',
+              'links'
             ]
           ]   
         );
   }
 
   // Test Show Template Not Found
-  public function testTemplateShowNotFound()
+  public function testChecklistShowNotFound()
   {
     $params = [];
-    $this->get('/template/9999', [
+    $this->get('/checklist/9999', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -174,10 +146,10 @@ class TemplateTest extends TestCase
   }
 
   // Test Show Template Whithout Header
-  public function testTemplateShowWithoutHeader()
+  public function testChecklistShowWithoutHeader()
   {
     $params = [];
-    $this->get('/template/9999', [
+    $this->get('/checklist/9999', [
     ]);
 
     $this->seeStatusCode(401);
@@ -196,11 +168,11 @@ class TemplateTest extends TestCase
   */
   
   // Test Update Template Success
-  public function testTemplateUpdateSuccess()
+  public function testChecklistUpdateSuccess()
   {
-    $paramsText = '{"data":{"name":"foo template","checklist":{"description":"my checklist","due_interval":3,"due_unit":"hour"},"items":[{"description":"my foo item","urgency":2,"due_interval":40,"due_unit":"minute"},{"description":"my bar item","urgency":3,"due_interval":30,"due_unit":"minute"}]}}';
+    $paramsText = '{"data":{"type":"checklists","id":1,"attributes":{"object_domain":"contact","object_id":"1","description":"Need to verify this guy house.","is_completed":false,"completed_at":"2018-01-25T07:50:14+00:00","created_at":"2018-01-25T07:50:14+00:00"}}}';
     $params = json_decode($paramsText, true);
-    $this->patch('/template/1', $params, [
+    $this->patch('/checklists/1', $params, [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -208,34 +180,21 @@ class TemplateTest extends TestCase
 
     $this->seeJsonStructure([
             'data'=>[
-              'name',
-              'checklist'=>[
-                'description',
-                'due_interval',
-                'due_unit'
-              ],
-              'items'=> [
-                '*' => [
-                  'description',
-                  'urgency',
-                  'due_interval',
-                  'due_unit'
-                ] 
-              ],
-              'updated_at',
-              'created_at',
-              'id'
+              'type',
+              'id',
+              'attributes',
+              'links'
             ]
           ]   
         );
   }
 
   // Test Update Template Validation Failed
-  public function testTemplateUpdateValidationFailed()
+  public function testChecklistUpdateValidationFailed()
   {
-    $paramsText = '{"data":{"name":"foo larva","checklist":{"description":null,"due_interval":3,"due_unit":-1},"items":null}}';
+    $paramsText = '{"data":{"type":"checklists","id":1,"attributes":{"object_domain":"contact","object_id":"1","description":"Need to verify this guy house.","is_completed":"a","completed_at":"2018-01-25T07:50:14+00:00","created_at":"2018-01-25T07:50:14+00:00"}}}';
     $params = json_decode($paramsText, true);
-    $this->patch('/template/1', $params, [
+    $this->patch('/checklists/1', $params, [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -251,11 +210,11 @@ class TemplateTest extends TestCase
   }
 
   // Test Update Template Without Header
-  public function testTemplateUpdateWithoutAuthHeaderFailed()
+  public function testChecklistUpdateWithoutAuthHeaderFailed()
   {
-    $paramsText = '{"data":{"name":"foo larva","checklist":{"description":null,"due_interval":3,"due_unit":-1},"items":null}}';
+    $paramsText = '{"data":{"type":"checklists","id":1,"attributes":{"object_domain":"contact","object_id":"1","description":"Need to verify this guy house.","is_completed":"a","completed_at":"2018-01-25T07:50:14+00:00","created_at":"2018-01-25T07:50:14+00:00"}}}';
     $params = json_decode($paramsText, true);
-    $this->patch('/template/1', $params, [
+    $this->patch('/checklists/1', $params, [
     ]);
 
     $this->seeStatusCode(401);
@@ -277,7 +236,7 @@ class TemplateTest extends TestCase
   {
     $paramsText = '{"data":[{"attributes":{"object_id":1,"object_domain":"deals"}},{"attributes":{"object_id":2,"object_domain":"deals"}},{"attributes":{"object_id":3,"object_domain":"deals"}}]}';
     $params = json_decode($paramsText, true);
-    $this->post('/template/1/assigns', $params, [
+    $this->post('/checklist/1/assigns', $params, [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -329,33 +288,16 @@ class TemplateTest extends TestCase
         );
   }
 
-  public function testAssignToObjectValidationFailed()
-  {
-    $paramsText = '{"data":[{"attributes":{"object_id":"a","object_domain":"deals"}},{"attributes":{"object_id":2,"object_domain":"deals"}},{"attributes":{"object_id":3,"object_domain":"deals"}}]}';
-    $params = json_decode($paramsText, true);
-    $this->post('/template/1/assigns', $params, [
-      'Authorization' => 'Bearer '. User::find(1)->auth_key,
-    ]);
-    // dd($paramsText);
+  // Teset Validation Failed
 
-     $this->seeStatusCode(500);
-
-    $this->seeJsonStructure(
-            [
-              'message',
-              'status'
-            ]    
-        );
-  }
-
-  // Teset Assign Template To Object with Validation Failed
   public function testAssignTemplateToObjectValidationFailed()
   {
     $paramsText = '{"data":[{"attributes":{"object_id":"a","object_domain":"deals"}},{"attributes":{"object_id":2,"object_domain":"deals"}},{"attributes":{"object_id":3,"object_domain":"deals"}}]}';
     $params = json_decode($paramsText, true);
-    $this->post('/template/1/assigns', $params, [
+    $this->post('/checklist/1/assigns', $params, [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
+    // dd($paramsText);
 
      $this->seeStatusCode(500);
 
@@ -371,11 +313,13 @@ class TemplateTest extends TestCase
   * 6. Delete
   */
 
-  public function testTemplateDelete()
+  public function testDeleteTemplateSuccess()
   {
-    $this->delete('/template/1', [
+    $this->delete('/checklists/5', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
-    $this->seeStatusCode(204);
+
+     $this->seeStatusCode(204);
   }
+
 }

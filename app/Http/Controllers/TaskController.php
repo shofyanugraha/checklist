@@ -119,23 +119,35 @@ class TaskController extends Controller
       if($request->has('filter')) {
         foreach ($request->filter as $key => $filter) {
           foreach ($filter as $k => $value) {
-            $value = explode(',',$value);
             if($k == 'is') {
-              $tasks->where($key,$value);
+              $templates->where($key,$value);
             } elseif ($k == '!is') {
-              $tasks->where($key,'!=',$value);
+              $templates->where($key,'!=',$value);
             } elseif ($k == 'in') {
-              $tasks->whereIn($key,$value);
+              $value = explode(',',$value);
+              $templates->whereIn($key,$value);
             } elseif ($k == '!in') {
-              $tasks->whereNotIn($key,$value);
+              $value = explode(',',$value);
+              $templates->whereNotIn($key,$value);
             } elseif ($k == 'like') {
-              $tasks->whereLike($key,preg_replace('/[*]/', '%', $value));
+              $tempValue = $value;
+              if(preg_match('/[*]/', '%', $value)){
+                $templates->where($key, 'like', preg_replace('/[*]/', '%', $value));
+              } else {                
+                $templates->where($key, 'like', '%'. $tempValue.'%');
+              }
             } elseif ($k == '!like') {
-              $tasks->whereNotLike($key, preg_replace('/[*]/', '%', $value));
+              $tempValue = $value;
+              if(preg_match('/[*]/', '%', $value)){
+                $templates->where($key, 'not like', preg_replace('/[*]/', '%', $value));
+              } else {
+                $templates->where($key, 'not like', '%'. $tempValue.'%');
+              }
             }
           }
         }
       }
+
       if($request->has('field')) {
         $fields = $request->field;
         $arrayField = explode(',', $fields);
@@ -164,6 +176,9 @@ class TaskController extends Controller
       $task = (new TaskTransformer)->single($tasks);
       
       return Json::response($task);
+      
+    } catch (\Illuminate\Database\Eloquent\ModelNotFoundException $e){
+      return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 404);
     } catch (\Illuminate\Database\QueryException $e){
       return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
     } catch (\Exception $e){

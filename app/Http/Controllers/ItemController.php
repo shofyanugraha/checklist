@@ -356,9 +356,6 @@ class ItemController extends Controller
     ];
 
     return Json::response($data, null, 200);
-
-
-
     
   }
 

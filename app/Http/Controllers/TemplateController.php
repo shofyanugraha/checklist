@@ -131,7 +131,7 @@ class TemplateController extends Controller
       }
 
       $templates = $templates->paginate($request->input('page_limit', 10))->appends($request->all());
-      // dd($templates);
+
       return Json::response($templates);
     } catch (\Illuminate\Database\QueryException $e){
       return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
@@ -198,12 +198,12 @@ class TemplateController extends Controller
       if($template->delete()){
         return Json::response(null, null, 204);
       } else {
-        return Json::exception('Error',null, 401);
+        return Json::exception('Error',null, 400);
       }
     } catch (\Illuminate\Database\QueryException $e){
       return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
     } catch (\Exception $e){
-      return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 401);
+      return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 400);
     }
   }
 
@@ -234,7 +234,6 @@ class TemplateController extends Controller
         $task->type = 'checklist';
         if($task->save()){
           $itemHolder = []; 
-
           foreach ($template->items as $item){
             $dataItem = new Item;
             $dataItem->user_id = $request->userid;
