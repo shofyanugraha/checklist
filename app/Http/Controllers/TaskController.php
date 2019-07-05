@@ -120,28 +120,28 @@ class TaskController extends Controller
         foreach ($request->filter as $key => $filter) {
           foreach ($filter as $k => $value) {
             if($k == 'is') {
-              $templates->where($key,$value);
+              $tasks->where($key,$value);
             } elseif ($k == '!is') {
-              $templates->where($key,'!=',$value);
+              $tasks->where($key,'!=',$value);
             } elseif ($k == 'in') {
               $value = explode(',',$value);
-              $templates->whereIn($key,$value);
+              $tasks->whereIn($key,$value);
             } elseif ($k == '!in') {
               $value = explode(',',$value);
-              $templates->whereNotIn($key,$value);
+              $tasks->whereNotIn($key,$value);
             } elseif ($k == 'like') {
               $tempValue = $value;
               if(preg_match('/[*]/', '%', $value)){
-                $templates->where($key, 'like', preg_replace('/[*]/', '%', $value));
+                $tasks->where($key, 'like', preg_replace('/[*]/', '%', $value));
               } else {                
-                $templates->where($key, 'like', '%'. $tempValue.'%');
+                $tasks->where($key, 'like', '%'. $tempValue.'%');
               }
             } elseif ($k == '!like') {
               $tempValue = $value;
               if(preg_match('/[*]/', '%', $value)){
-                $templates->where($key, 'not like', preg_replace('/[*]/', '%', $value));
+                $tasks->where($key, 'not like', preg_replace('/[*]/', '%', $value));
               } else {
-                $templates->where($key, 'not like', '%'. $tempValue.'%');
+                $tasks->where($key, 'not like', '%'. $tempValue.'%');
               }
             }
           }

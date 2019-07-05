@@ -4,6 +4,7 @@ use Laravel\Lumen\Testing\DatabaseMigrations;
 use Laravel\Lumen\Testing\DatabaseTransactions;
 use App\Models\Template;
 use App\Models\User;
+use App\Models\Task;
 class ChecklistTest extends TestCase
 {
 
@@ -117,7 +118,7 @@ class ChecklistTest extends TestCase
   public function testChecklistShowSuccess()
   {
     $params = [];
-    $this->get('/checklist/'.Task::orderBy('id','desc')->first()->id, [
+    $this->get('/checklists/4', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -138,7 +139,7 @@ class ChecklistTest extends TestCase
   public function testChecklistShowNotFound()
   {
     $params = [];
-    $this->get('/checklist/9999', [
+    $this->get('/checklists/9999', [
       'Authorization' => 'Bearer '. User::find(1)->auth_key,
     ]);
 
@@ -149,7 +150,7 @@ class ChecklistTest extends TestCase
   public function testChecklistShowWithoutHeader()
   {
     $params = [];
-    $this->get('/checklist/9999', [
+    $this->get('/checklists/1', [
     ]);
 
     $this->seeStatusCode(401);
@@ -228,89 +229,7 @@ class ChecklistTest extends TestCase
   }
 
   /*
-  * 5. Assign
-  */
-
-  // Test Update Template Without Header
-  public function testAssignToObjectSuccess()
-  {
-    $paramsText = '{"data":[{"attributes":{"object_id":1,"object_domain":"deals"}},{"attributes":{"object_id":2,"object_domain":"deals"}},{"attributes":{"object_id":3,"object_domain":"deals"}}]}';
-    $params = json_decode($paramsText, true);
-    $this->post('/checklist/1/assigns', $params, [
-      'Authorization' => 'Bearer '. User::find(1)->auth_key,
-    ]);
-
-    $this->seeStatusCode(200);
-
-    $this->seeJsonStructure([
-            'data'=>[
-              '*'=>[
-                'user_id',
-                'object_domain',
-                'description',
-                'due',
-                'is_completed',
-                'type',
-                'updated_at',
-                'created_at',
-                'id',
-                'links'=>['self'],
-                'relationship'=>[
-                  'items'=> [
-                    'data'=>[
-                      '*'=>[
-                        'type',
-                        'id'
-                      ],
-                    ],
-                    'links'=>['self', 'related']
-                  ],
-                ]
-              ],  
-            ],
-            'included'=>[
-              '*'=>[
-                'id',
-                'user_id',
-                'description',
-                'is_completed',
-                'completed_at',
-                'due',
-                'urgency',
-                'updated_by',
-                'assignee_id',
-                'task_id',
-                'created_at',
-                'updated_at'
-              ]
-            ]
-          ]   
-        );
-  }
-
-  // Teset Validation Failed
-
-  public function testAssignTemplateToObjectValidationFailed()
-  {
-    $paramsText = '{"data":[{"attributes":{"object_id":"a","object_domain":"deals"}},{"attributes":{"object_id":2,"object_domain":"deals"}},{"attributes":{"object_id":3,"object_domain":"deals"}}]}';
-    $params = json_decode($paramsText, true);
-    $this->post('/checklist/1/assigns', $params, [
-      'Authorization' => 'Bearer '. User::find(1)->auth_key,
-    ]);
-    // dd($paramsText);
-
-     $this->seeStatusCode(500);
-
-    $this->seeJsonStructure(
-            [
-              'message',
-              'status'
-            ]    
-        );
-  }
-
-  /*
-  * 6. Delete
+  * 5. Delete
   */
 
   public function testDeleteTemplateSuccess()

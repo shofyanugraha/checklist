@@ -4,6 +4,8 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use App\Models\ObjectData;
+use App\Models\Task;
+use Carbon\Carbon;
 
 class SetupDataSeeder extends Seeder
 {
@@ -45,5 +47,17 @@ class SetupDataSeeder extends Seeder
     	$object->name = 'Object 3';
     	$object->object_domain = 'deals';
     	$object->save();
+
+    	for($i = 0; $i < 50; $i++){
+    		$task = new Task;
+    		$task->user_id = 1;
+	      	$task->object_domain = 'Data';
+		      $task->object_id = 1;
+		      $task->description = 'Foo Descriptionn';
+		      $task->due = Carbon::now()->addDays(10)->toDateTimeString();
+		      $task->is_completed = 0;
+		      $task->type = 'checklist';
+		      $task->save();
+		 }
     }
 }
