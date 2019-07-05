@@ -33,7 +33,7 @@ class Json
             if($action == 'bulk'){
                 $result['meta']['count'] = count($data);
                 $result['meta']['total'] = count($data);
-            } else {
+            } elseif ($action == 'link') {
                 if(!isset($result['data']['links'])){
                     $result['data']['links'] = ['self'=>app('url')->full()] ;
                 }

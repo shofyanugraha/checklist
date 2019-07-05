@@ -221,4 +221,127 @@ class TaskController extends Controller
     }
   }
 
+  public function complete(Request $request){
+    $this->validate($request, [
+      'data'=>'required',
+      'data.*'=>'required',
+      'data.*.item_id'=>'required|numeric|exists:items,id'
+    ]);
+
+    //collector checklist id for check items
+    $checklist_ids = collect([]);
+
+    //data for return
+    $return = [];
+
+    $completed = Carbon::now()->toDateTimeString();
+    
+    foreach($request->data as $dt){
+      try{
+        $item = Item::find($dt['item_id']);
+        if($item->is_completed != true) {
+          $item->is_completed = true;
+          $item->completed_at = $completed;
+          if($item->save()){
+            $return[] = [
+              'id' => $item->id,
+              'item_id' => $item->id,
+              'is_completed' => $item->is_completed == 1 ? true : false,
+              'checklist_id' => $item->task_id,
+            ];
+            $checklist_ids = $checklist_ids->push($item->task_id);
+          } else {
+            return Json::exception('Cannot bulk update', null, null, 400);
+          }  
+        } else {
+          return Json::exception('item_id '. $dt['item_id'].' has been completed before', null, 401);  
+        }
+      } catch (\Illuminate\Database\QueryException $e){
+        return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
+      } catch (\Exception $e){
+        return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 404);
+      }      
+    }
+
+    // //check all item complete for checklist
+    foreach($checklist_ids->unique() as $chk){
+      $task = Task::find($chk);
+      $chkItem = $task->items; 
+      
+      if($chkItem->count() == $chkItem->where('is_completed', 1)->count()){
+        
+        // check if task is_completed = false before complete the task
+        if($task->is_completed != true){
+          $task->is_completed = true;
+          $task->completed_at = $completed;
+          $task->save();
+        }
+      } 
+    }
+
+
+    return Json::response($return, null, 200, null, 'single');
+  }
+
+  public function incomplete(Request $request){
+    $this->validate($request, [
+      'data'=>'required',
+      'data.*'=>'required',
+      'data.*.item_id'=>'required|numeric|exists:items,id'
+    ]);
+
+    //collector checklist id for check items
+    $checklist_ids = collect([]);
+
+    //data for return
+    $return = [];
+
+    $completed = Carbon::now()->toDateTimeString();
+    
+    foreach($request->data as $dt){
+      try{
+        $item = Item::find($dt['item_id']);
+        if($item->is_completed != false) {
+          $item->is_completed = false;
+          $item->completed_at = $completed;
+          if($item->save()){
+            $return[] = [
+              'id' => $item->id,
+              'item_id' => $item->id,
+              'is_completed' => $item->is_completed == 1 ? true : false,
+              'checklist_id' => $item->task_id,
+            ];
+            $checklist_ids = $checklist_ids->push($item->task_id);
+          } else {
+            return Json::exception('Cannot bulk update', null, null, 400);
+          }  
+        } else {
+          return Json::exception('item_id '. $dt['item_id'].' has been incompleted before', null, 401);  
+        }
+      } catch (\Illuminate\Database\QueryException $e){
+        return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 500);
+      } catch (\Exception $e){
+        return Json::exception($e->getMessage(), env('APP_ENV', 'local') == 'local' ? $e : null, 404);
+      }      
+    }
+
+    // //check all item complete for checklist
+    foreach($checklist_ids->unique() as $chk){
+      $task = Task::find($chk);
+      $chkItem = $task->items; 
+      
+      if($chkItem->count() == $chkItem->where('is_completed', 1)->count()){
+        
+        // check if task is_completed = false before complete the task
+        if($task->is_completed != true){
+          $task->is_completed = true;
+          $task->completed_at = $completed;
+          $task->save();
+        }
+      } 
+    }
+
+
+    return Json::response($return, null, 200, null, 'single');
+  }
 }
