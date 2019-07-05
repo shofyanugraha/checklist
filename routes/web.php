@@ -24,3 +24,11 @@ $router->group(['prefix'=>'/template'], function($router){
 	$router->post('/{id}/assigns','TemplateController@assign');
 });
 
+$router->group(['prefix'=>'/checklists'], function($router){
+	$router->get('/','TaskController@index');
+	$router->post('/','TaskController@store');
+	$router->get('/{id}','TaskController@show');
+	$router->patch('/{id}','TaskController@update');
+	$router->delete('/{id}','TaskController@delete');
+});
+

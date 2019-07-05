@@ -7,7 +7,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 */
 class Json
 {
-	public static function response($data = null, $message = null, $code = 200, $additional=null)
+	public static function response($data = null, $message = null, $code = 200, $additional=null, $action = null)
     {	
         if ($message==null) {
             $message = __('message.success');
