@@ -30,11 +30,13 @@ class Json
             $result['data']['links']['self'] = app('url')->full() ;
     	} else {
     		$result['data'] = $data;
-            if(is_array($data) && count($data) > 1){
+            if($action == 'bulk'){
                 $result['meta']['count'] = count($data);
                 $result['meta']['total'] = count($data);
             } else {
-                $result['data']['links'] = ['self'=>app('url')->full()] ;
+                if(!isset($result['data']['links'])){
+                    $result['data']['links'] = ['self'=>app('url')->full()] ;
+                }
             }
     	}
 

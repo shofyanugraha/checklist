@@ -23,6 +23,7 @@ class TaskTransformer extends TransformerAbstract{
 				'created_at' => $task->created_at,
 				'updated_at' => $task->updated_at
 			],
+			'links'=>['self'=>url('/checklists/'.$task->id)]
 		];
 
 	}

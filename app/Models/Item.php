@@ -5,6 +5,7 @@ class Item extends Model
 {
 	protected $casts = [
         'is_completed' => 'boolean',
+        'due' => 'datetime:c',
         'created_at' => 'datetime:c',
         'updated_at' => 'datetime:c',
         'completed_at' => 'datetime:c'

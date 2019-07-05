@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 
 // model
 use App\Models\Task;
+use App\Models\Item;
 
 // filter
 use App\Rules\Filter;
@@ -39,28 +40,47 @@ class TaskController extends Controller
     $this->validate($request, [
       'data'=>'required',
       'data.attributes'=>'required',
-      'data.attributes.name'=>'required|string',
-      'data.attributes.checklist'=>'required',
-      'data.attributes.checklist.description'=>'required|string',
-      'data.attributes.checklist.due_interval'=>'required|numeric',
-      'data.attributes.checklist.due_unit'=>'required|string',
-      'data.attributes.items'=>'required|array',
-      'data.attributes.items.*.description'=>'required|string',
-      'data.attributes.items.*.urgency'=>'required|numeric',
-      'data.attributes.items.*.due_interval'=>'required|numeric',
-      'data.attributes.items.*.due_unit'=>'required|string',
+      'data.attributes.object_domain'=>'required|string',
+      'data.attributes.object_id'=>'required|numeric',
+      'data.attributes.due'=>'required',
+      'data.attributes.urgency'=>'numeric',
+      'data.attributes.description'=>'string',
+      'data.attributes.items'=>'array',
     ]);
 
+    $due = Carbon::parse($request->data['attributes']['due'])->toDateTimeString();
     // trying save template to db
     try {
-      $template = new Template;
-      $template->user_id = $request->userid;
-      $template->name = $request->data['attributes']['name'];
-      $template->checklist = $request->data['attributes']['checklist'];
-      $template->items = $request->data['attributes']['items'];
-
-      if($template->save()){
-        return Json::response($template);
+      $task = new Task;
+      $task->user_id = $request->userid;
+      $task->object_domain = $request->data['attributes']['object_domain'];
+      $task->object_id = $request->data['attributes']['object_id'];
+      $task->description = $request->data['attributes']['description'];
+      $task->due = $due;
+      $task->is_completed = 0;
+      $task->type = 'checklist';
+      
+      if($task->save()){
+        if($request->has('data.attributes.items')){
+          $itemHolder = [];
+          foreach($request->data['attributes']['items'] as $item){
+            $dataItem = new Item;
+            $dataItem->user_id = $request->userid;
+            $dataItem->assignee_id = $request->userid;
+            $dataItem->urgency = $request->data['attributes']['urgency'];
+            $dataItem->description = $item;
+            $dataItem->due = $due;
+            $dataItem->is_completed = false;
+            $itemHolder[] = $dataItem;
+          }
+          try{
+            $task->items()->saveMany($itemHolder); 
+          } catch (\Exception $e){
+            return Json::exception('Error', env('APP_ENV', 'local') == 'local' ? $e : null, 401);
+          }
+        }  
+        $response = (new TaskTransformer)->single($task);
+        return Json::response($response);
       } else {
         return Json::exception('Failed to create template');
       }
