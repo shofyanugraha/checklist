@@ -27,19 +27,24 @@ $router->group(['prefix'=>'/template'], function($router){
 $router->group(['prefix'=>'/checklists'], function($router){
 	$router->get('/','TaskController@index');
 	$router->post('/','TaskController@store');
-	$router->post('/complete','TaskController@complete');
-	$router->post('/incomplete','TaskController@incomplete');
-	$router->get('/{id}','TaskController@show');
-	$router->patch('/{id}','TaskController@update');
-	$router->delete('/{id}','TaskController@delete');
+	
+	$router->post('/complete','ItemController@complete');
+	$router->post('/incomplete','ItemController@incomplete');
 
-});
+	$router->get('/items/summary','ItemController@summary');
 
-$router->group(['prefix'=>'/items'], function($router){
-	$router->get('/','TaskController@index');
-	$router->post('/','TaskController@store');
-	$router->get('/{id}','TaskController@show');
-	$router->patch('/{id}','TaskController@update');
-	$router->delete('/{id}','TaskController@delete');
+	$router->group(['prefix'=>'/{id}'], function($router){
+		$router->get('/','TaskController@show');
+		$router->patch('/','TaskController@update');
+		$router->delete('/','TaskController@delete');
+	
+		$router->get('/items','ItemController@index');
+		$router->post('/items','ItemController@store');
+		$router->post('/items/_bulk','ItemController@updateBulk');
+		$router->patch('/items/{itemId}','ItemController@update');
+		$router->delete('/items/{itemId}','ItemController@delete');
+	});
+
+
 });
 

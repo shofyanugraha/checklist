@@ -47,7 +47,7 @@ class Json
 	    return response()->json($result, $code);
     }
 
-    public static function exception($message = null, $error = null, $code=401)
+    public static function exception($message = null, $error = null, $code=400)
     {	
         if ($message==null) {
             $message = __('message.error');

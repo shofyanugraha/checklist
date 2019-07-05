@@ -7,8 +7,8 @@ use League\Fractal\TransformerAbstract;
 
 class TaskTransformer extends TransformerAbstract{
 	
-	public function single(Task $task){
-		return [
+	public function single(Task $task, $option = []){
+		$return = [
 			'type'	=> 'checklist',
 			'id'		=> $task->id,
 			'attributes' => [
@@ -26,6 +26,16 @@ class TaskTransformer extends TransformerAbstract{
 			'links'=>['self'=>url('/checklists/'.$task->id)]
 		];
 
+		if(isset($option['relations'])){
+			$relations = explode(',', $option['relations']);
+			foreach($relations as $relation){
+				if($task->{$relation}()->exists()){
+					$return['attributes'][$relation] = $task->{$relation};
+				}
+			}
+		}
+
+		return $return;
 	}
 }
 
